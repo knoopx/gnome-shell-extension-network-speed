@@ -15,9 +15,9 @@ function sum(arr, propName = null) {
 
 function formatBytes(bytes) {
   bytes /= 1024
-  if (bytes > 1024) {
+  if (bytes > 1000) {
     bytes /= 1024
-    if (bytes > 1024) {
+    if (bytes > 1000) {
       bytes /= 1024
       return `${Math.ceil(bytes)} GB`
     }
@@ -236,7 +236,7 @@ class CpuIndicator extends SamplingIndicator {
   constructor() {
     super("CPU", 60, {
       text: "---",
-      style: "font-size: x-small; text-align: right; width: 3em;",
+      style: "font-size: x-small; text-align: right; width: 4em;",
       y_align: Clutter.ActorAlign.CENTER,
     })
   }
