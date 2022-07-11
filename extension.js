@@ -19,11 +19,11 @@ function formatBytes(bytes) {
     bytes /= 1024
     if (bytes > 1000) {
       bytes /= 1024
-      return `${Math.ceil(bytes)} GB`
+      return `${bytes.toFixed(2)} GB`
     }
-    return `${Math.ceil(bytes)} MB`
+    return `${Math.round(bytes)} MB`
   }
-  return `${Math.ceil(bytes)} KB`
+  return `${Math.round(bytes)} KB`
 }
 
 class Indicator {
@@ -261,7 +261,7 @@ class CpuIndicator extends SamplingIndicator {
     const usage = ((total - idle) / total) * 100
 
     return [
-      `${Math.floor(usage)}%`,
+      `${usage.toFixed(1)}%`,
       `${Math.round(sum(this.samples, "temperature") / this.samples.length)}ºC`,
     ].join("\n")
   }
