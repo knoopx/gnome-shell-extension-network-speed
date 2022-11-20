@@ -2,5 +2,5 @@
   "uuid": "system-stats@knoopx.net",
   "name": "System Stats",
   "description": "System Stats",
-  "shell-version": ["41", "42"]
+  "shell-version": ["41", "42", "43"]
 }
