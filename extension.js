@@ -19,18 +19,17 @@ function formatBytes(bytes) {
     bytes /= 1024
     if (bytes > 1000) {
       bytes /= 1024
-      return `${bytes.toFixed(2)} GB`
+      return `${bytes.toFixed(2)}GB`
     }
-    return `${Math.round(bytes)} MB`
+    return `${Math.round(bytes)}MB`
   }
-  return `${Math.round(bytes)} KB`
+  return `${Math.round(bytes)}KB`
 }
 
 class Indicator {
   constructor(name, labelProps = {}) {
     this.button = new panelMenu.Button(0, name, false)
-    this.label = new St.Label(labelProps)
-
+    this.label = new St.Label({  ...labelProps })
     this.button.add_child(this.label)
     main.panel.addToStatusArea(name, this.button)
   }
@@ -202,7 +201,7 @@ class MemoryIndicator extends SamplingIndicator {
   constructor() {
     super("Memory", 60, {
       text: "---",
-      style: "font-size: x-small; text-align: right; width: 4em;",
+      style: "font-size: x-small; text-align: right; width: 6em;",
       y_align: Clutter.ActorAlign.CENTER,
     })
   }
@@ -236,7 +235,7 @@ class CpuIndicator extends SamplingIndicator {
   constructor() {
     super("CPU", 60, {
       text: "---",
-      style: "font-size: x-small; text-align: right; width: 4em;",
+      style: "font-size: x-small; text-align: left; width: 10em;",
       y_align: Clutter.ActorAlign.CENTER,
     })
   }
@@ -245,8 +244,9 @@ class CpuIndicator extends SamplingIndicator {
     const [, out] = GLib.file_get_contents("/proc/stat")
     const lines = byteArray.toString(out).split("\n")
     const [, ...values] = lines[0].split(/\s+/).map(Number)
-
+    const mem = getMemoryStats()
     this.samples.push({
+      mem: mem.MemTotal - mem.MemAvailable,
       total: values.reduce((a, b) => a + b),
       idle: values[3] + values[4],
       temperature: getCPUTemperature(),
@@ -260,18 +260,72 @@ class CpuIndicator extends SamplingIndicator {
       this.samples[this.samples.length - 1].idle - this.samples[0].idle
     const usage = ((total - idle) / total) * 100
 
+    const temp = `${Math.round(
+      sum(this.samples, "temperature") / this.samples.length,
+    )}ºC`
+
+    const memUsed = formatBytes(
+      (sum(this.samples, "mem") / this.samples.length) * 1024,
+    )
+
     return [
-      `${usage.toFixed(1)}%`,
-      `${Math.round(sum(this.samples, "temperature") / this.samples.length)}ºC`,
+      `CPU  ${usage.toFixed(1)}%  (${temp})`,
+      `RAM  ${memUsed}`,
     ].join("\n")
+  }
+}
+
+class GpuIndicator extends SamplingIndicator {
+  constructor() {
+    super("GPU", 60, {
+      text: "---",
+      style: "font-size: x-small; text-align: left; width: 10em;",
+      y_align: Clutter.ActorAlign.CENTER,
+    })
+  }
+  sample(query) {
+    let [, out] = GLib.spawn_command_line_sync(
+      "nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits",
+    )
+    const [temp, gpu, mem, memTotal] = byteArray
+      .toString(out)
+      .split(", ")
+      .map(Number)
+
+    this.samples.push({
+      gpu: gpu,
+      mem: mem,
+      memTotal: memTotal,
+      temperature: temp,
+    })
+  }
+
+  format() {
+    const usage = `${(sum(this.samples, "gpu") / this.samples.length).toFixed(
+      1,
+    )}%`
+    const temp = `${Math.round(
+      sum(this.samples, "temperature") / this.samples.length,
+    )}ºC`
+
+    const memUsed = formatBytes(
+      (sum(this.samples, "mem") / this.samples.length) * 1024 * 1024,
+    )
+
+    const memTotal = formatBytes(
+      (sum(this.samples, "memTotal") / this.samples.length) * 1024 * 1024,
+    )
+
+    return [`GPU  ${usage}  (${temp})`, `VRAM  ${memUsed}`].join("\n")
   }
 }
 
 class Extension {
   enable() {
     this.indicators = [
-      new MemoryIndicator(),
+      // new MemoryIndicator(),
       new CpuIndicator(),
+      new GpuIndicator(),
       new NetworkSpeedIndicator(),
     ]
   }
