@@ -231,6 +231,11 @@ function getCPUTemperature() {
   return temp / 1000
 }
 
+function formatPercent(number){
+  const percent = number > 99.99 ? Math.round(number) : number.toFixed(1)
+  return `${percent}%`
+}
+
 class CpuIndicator extends SamplingIndicator {
   constructor() {
     super("CPU", 60, {
@@ -258,7 +263,7 @@ class CpuIndicator extends SamplingIndicator {
       this.samples[this.samples.length - 1].total - this.samples[0].total
     const idle =
       this.samples[this.samples.length - 1].idle - this.samples[0].idle
-    const usage = ((total - idle) / total) * 100
+    const usage = formatPercent(((total - idle) / total) * 100)
 
     const temp = `${Math.round(
       sum(this.samples, "temperature") / this.samples.length,
@@ -269,7 +274,7 @@ class CpuIndicator extends SamplingIndicator {
     )
 
     return [
-      `CPU  ${usage.toFixed(1)}%  (${temp})`,
+      `CPU  ${usage}  (${temp})`,
       `RAM  ${memUsed}`,
     ].join("\n")
   }
@@ -301,9 +306,8 @@ class GpuIndicator extends SamplingIndicator {
   }
 
   format() {
-    const usage = `${(sum(this.samples, "gpu") / this.samples.length).toFixed(
-      1,
-    )}%`
+    const usage = formatPercent(sum(this.samples, "gpu") / this.samples.length)
+
     const temp = `${Math.round(
       sum(this.samples, "temperature") / this.samples.length,
     )}ºC`
