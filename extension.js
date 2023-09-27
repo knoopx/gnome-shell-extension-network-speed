@@ -1,10 +1,18 @@
+import St from "gi://St"
+import Clutter from "gi://Clutter"
+import GLib from "gi://GLib"
+import { panel } from "resource:///org/gnome/shell/ui/main.js"
+import { Button } from "resource:///org/gnome/shell/ui/panelMenu.js"
+
+const byteArray = imports.byteArray
+
 /* eslint-disable max-classes-per-file */
 
-const {
-  byteArray,
-  gi: { St, GLib, Clutter },
-  ui: { main, panelMenu },
-} = imports
+// const {
+//   byteArray,
+//   gi: { St, GLib, Clutter },
+//   ui: { main, panelMenu },
+// } = imports
 
 function sum(arr, propName = null) {
   return arr.reduce(
@@ -28,10 +36,10 @@ function formatBytes(bytes) {
 
 class Indicator {
   constructor(name, labelProps = {}) {
-    this.button = new panelMenu.Button(0, name, false)
-    this.label = new St.Label({  ...labelProps })
+    this.button = new Button(0, name, false)
+    this.label = new St.Label({ ...labelProps })
     this.button.add_child(this.label)
-    main.panel.addToStatusArea(name, this.button)
+    panel.addToStatusArea(name, this.button)
   }
 
   destroy() {
@@ -231,7 +239,7 @@ function getCPUTemperature() {
   return temp / 1000
 }
 
-function formatPercent(number){
+function formatPercent(number) {
   const percent = number > 99.99 ? Math.round(number) : number.toFixed(1)
   return `${percent}%`
 }
@@ -273,10 +281,7 @@ class CpuIndicator extends SamplingIndicator {
       (sum(this.samples, "mem") / this.samples.length) * 1024,
     )
 
-    return [
-      `CPU  ${usage}  (${temp})`,
-      `RAM  ${memUsed}`,
-    ].join("\n")
+    return [`CPU  ${usage}  (${temp})`, `RAM  ${memUsed}`].join("\n")
   }
 }
 
@@ -324,7 +329,7 @@ class GpuIndicator extends SamplingIndicator {
   }
 }
 
-class Extension {
+export default class Extension {
   enable() {
     this.indicators = [
       // new MemoryIndicator(),
@@ -337,8 +342,4 @@ class Extension {
   disable() {
     this.indicators.forEach((indicator) => indicator.destroy())
   }
-}
-
-function init() {
-  return new Extension()
 }
