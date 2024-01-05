@@ -6,14 +6,6 @@ import { Button } from "resource:///org/gnome/shell/ui/panelMenu.js"
 
 const byteArray = imports.byteArray
 
-/* eslint-disable max-classes-per-file */
-
-// const {
-//   byteArray,
-//   gi: { St, GLib, Clutter },
-//   ui: { main, panelMenu },
-// } = imports
-
 function sum(arr, propName = null) {
   return arr.reduce(
     (result, iter) => result + (propName == null ? iter : iter[propName]),
@@ -48,14 +40,14 @@ class Indicator {
 }
 
 class SamplingIndicator extends Indicator {
-  constructor(name, sampleRate, labelProps = {}) {
+  constructor(name, labelProps = {}, sampleRate = 1000) {
     super(name, labelProps)
 
     this.sampleRate = sampleRate
     this.samples = []
 
     this.timeout = GLib.timeout_add(
-      GLib.PRIORITY_DEFAULT,
+      GLib.G_PRIORITY_LOW,
       this.sampleRate,
       () => this.tick(),
     )
@@ -158,7 +150,7 @@ function getDefaultInterfaceStats() {
 
 class NetworkSpeedIndicator extends SamplingIndicator {
   constructor() {
-    super("Network Speed", 60, {
+    super("Network Speed", {
       text: "---",
       style: "font-size: x-small; text-align: right; width: 6em;",
       y_align: Clutter.ActorAlign.CENTER,
@@ -207,7 +199,7 @@ function getMemoryStats() {
 
 class MemoryIndicator extends SamplingIndicator {
   constructor() {
-    super("Memory", 60, {
+    super("Memory", {
       text: "---",
       style: "font-size: x-small; text-align: right; width: 6em;",
       y_align: Clutter.ActorAlign.CENTER,
@@ -246,7 +238,7 @@ function formatPercent(number) {
 
 class CpuIndicator extends SamplingIndicator {
   constructor() {
-    super("CPU", 60, {
+    super("CPU", {
       text: "---",
       style: "font-size: x-small; text-align: left; width: 10em;",
       y_align: Clutter.ActorAlign.CENTER,
@@ -287,7 +279,7 @@ class CpuIndicator extends SamplingIndicator {
 
 class GpuIndicator extends SamplingIndicator {
   constructor() {
-    super("GPU", 60, {
+    super("GPU", {
       text: "---",
       style: "font-size: x-small; text-align: left; width: 10em;",
       y_align: Clutter.ActorAlign.CENTER,
